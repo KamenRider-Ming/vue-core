@@ -3,6 +3,8 @@
 
 ![镇题之宝](img/prototype.jpg)
 
+留下镇殿链接，个人认为一切博客描述都没有官方讲的透彻：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain
+
 # 内容
 
 众所周知，JS中的继承是使用原生链实现的，那这个原生链是如何实现继承呢。
@@ -56,17 +58,19 @@ while(b.key === undefined && b.__proto__ !== undefined) {
 console.log(b.key)
 ```
 
-到这里我们基本知道JS是如何去继承一个对象属性的，但是大家也会存在疑惑，上面偶尔会出现的`prototype`是干什么用的，谷歌，百度搜索出现的原生链又是一个怎样的构造，这个涉及到JS更深层次的一些东西
+到这里我们基本知道JS是如何去继承一个对象属性的，但是大家也会存在疑惑，上面偶尔会出现的`prototype`是干什么用的，这个涉及到JS更深层次的一些东西
 
 ## 万物皆对象，蛋生鸡还是鸡生蛋
 
-在JS中任何东西都是一个对象，函数也是一个对象。在JS中只要是函数对象必有一个属性为`prototype`，如果使用当前这个函数当作构造函数去执行`new`操作，那么生成对象的`__proto__`属性则是指向`prototype`
+在JS中任何东西都是一个对象，函数也是一个对象。在JS中只要是函数对象必有一个属性为`prototype`，如果使用当前这个函数当作构造函数去执行`new`操作，那么生成对象的`__proto__`属性则是指向`prototype`，所以`prototype`也是为了继承为存在的。
 
 ```
 function foo() {}
 let a = new foo()
 a.__proto__ === foo.prototype  // 结果为true
 ```
+
+可以理解的是：将函数工厂当作一个手机制作工厂(用来生产某个特定的手机)，prototype就相当于这些手机共同使用的芯片架构，
 
 ### 这其中JS做了什么特殊处理呢？
 
@@ -79,8 +83,9 @@ function foo() {
 ```
 上面这条语句会被JS解释器处理成一个函数对象，然后foo这个变量指向函数对象的地址。
 
-生成函数对象的同时会给该函数对象设置一个属性`prototype`指向一个对象，这个对象是在定义这个函数时，由JS解释器根据该函数内容生成的一个很特殊的对象，同时会设置一个contructor属性指向该函数本身。
+生成函数对象的同时会给该函数对象设置一个属性`prototype`指向一个对象，这个对象是在定义这个函数时，由JS解释器根据该函数内容生成的一个很特殊的对象，同时会设置一个`contructor`属性指向该函数本身，这个时候大家会发现`prototype的结构其实已经很像我们类了`。
 
+一般情况下`prototype`对象只包含两个属性`constructor`和`__proto__`，其中`__proto__`是指向`Object.prototype`
 
 结果如下：
 ```
@@ -92,30 +97,30 @@ foo: {  // 函数对象
 }
 ```
 
-这里需要明确的是，函数不等于函数对象也不等于
+为什么`foo.prototype.__proto__`会指向`Object.prototype`
 
+这是因为`foo.prototype = new Object()`
+所以`foo.prototype.__proto__ = Object.prototype`
 
-## 函数和对象在原生链上的差异
+# 函数调用的真相
 
-1. 浏览器中的console内执行以下语句
-```js
-function foo () {}
-console.dir(foo)
 ```
-结果如下
-```js
-prototype  // 只有函数才会有该字段
-__proto__
-```
-1. 浏览器中的console内执行以下语句
-```js
-foo = { }
-console.dir(foo)
-```
-结果如下
-```js
-__proto__
+let callObj = {
+  key: 'key1'
+}
+function foo(a) {
+  console.log(this)
+  console.log(a)
+}
+foo.apply('f')
+foo.call(callObj, 'f')
+
+------console结果-----
+undefined
+'f'
+
+{ key: 'key1' }
+'f'
 ```
 
-从上面的结果可以查出来，函数也是一个对象，它是Function的实例
-其中prototype指向一个原生对象其实就是父类实力
+当执行`foo(a)`时其实执行的是`foo.apply(null, [a])`或者是`foo.call(null, a)`
