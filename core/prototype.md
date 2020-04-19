@@ -10,7 +10,7 @@
 众所周知，JS中的继承是使用原生链实现的，那这个原生链是如何实现继承呢。
 
 当我们定义一个构造函数并使用它实例化出一个对象
-```
+```js
 function foo() {}
 let a = new foo()
 console.dir(a)
@@ -23,7 +23,7 @@ a: {
 }
 ```
 通过实验我们可以知道，JS是使用`__proto__`来实现继承的，将上面代码改造如下
-```
+```js
 function foo() { this.key1 = 'c' }
 let b = { key1: 'a', key2: 'b' }
 let a = new foo()
@@ -49,7 +49,7 @@ a: {
 同理key1也是如此，只是key1在当前对象就已经存在了，所以直接返回a.key1的值，不会再沿着`__proto__`去查找了
 
 大概是如下的流程(伪代码)：
-```
+```js
 let a = test()  // 假设test是一个很复杂的构造函数，会有很多__proto__，也就是父亲的父亲的父亲的父亲的...有很多链
 let b = a
 while(b.key === undefined && b.__proto__ !== undefined) {
@@ -64,7 +64,7 @@ console.log(b.key)
 
 在JS中任何东西都是一个对象，函数也是一个对象。在JS中只要是函数对象必有一个属性为`prototype`，如果使用当前这个函数当作构造函数去执行`new`操作，那么生成对象的`__proto__`属性则是指向`prototype`，所以`prototype`也是为了继承为存在的。
 
-```
+```js
 function foo() {}
 let a = new foo()
 a.__proto__ === foo.prototype  // 结果为true
@@ -75,7 +75,7 @@ a.__proto__ === foo.prototype  // 结果为true
 ### 这其中JS做了什么特殊处理呢？
 
 比如我是用如下语句：
-```
+```js
 function foo() {
   this.a = 'b'
   this.b = 'c'
@@ -88,7 +88,7 @@ function foo() {
 一般情况下`prototype`对象只包含两个属性`constructor`和`__proto__`，其中`__proto__`是指向`Object.prototype`
 
 结果如下：
-```
+```js
 foo: {  // 函数对象
   prototype: {  // 一个可继承访问的对象
     contructor: foo  // 指向foo函数对象地址
@@ -104,7 +104,7 @@ foo: {  // 函数对象
 
 # 函数调用的真相
 
-```
+```js
 let callObj = {
   key: 'key1'
 }
